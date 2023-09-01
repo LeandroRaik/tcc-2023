@@ -80,7 +80,7 @@ for x = 1, width do
         local continentNoise = noise(xin, yin)
         
         -- Adjust threshold values to control landmass generation
-        local threshold = 0.1
+        local threshold = 0.0
         if continentNoise > threshold then
             noiseMap[x][y] = continentNoise -- Land
         else
