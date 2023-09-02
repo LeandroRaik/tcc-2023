@@ -80,23 +80,28 @@ for x = 1, width do
         local continentNoise = noise(xin, yin)
         
         -- Adjust threshold values to control landmass generation
-        local threshold = 0.1
+        local threshold = -1
         if continentNoise > threshold then
             noiseMap[x][y] = continentNoise -- Land
         else
-            noiseMap[x][y] = 0.0 -- Ocean
+            noiseMap[x][y] = 0.0-- Ocean
         end
     end
 end
 
 local maxPixelValue = 255
 
+local minValue = -1.0 -- Minimum noise value
+local maxValue = 1.0  -- Maximum noise value
+
+-- Create a function to write the PGM file
 local function writePGM(filename, data, width, height, maxPixelValue)
     local file = assert(io.open(filename, "wb"))
     file:write(string.format("P5\n%d %d\n%d\n", width, height, maxPixelValue))
     for y = 1, height do
         for x = 1, width do
-            local value = math.floor(data[x][y] * maxPixelValue + 0.5)
+            local normalizedValue = (data[x][y] - minValue) / (maxValue - minValue)
+            local value = math.floor(normalizedValue * maxPixelValue + 0.5)
             file:write(string.char(value))
         end
     end
@@ -105,5 +110,25 @@ end
 
 writePGM("output.pgm", noiseMap, width, height, maxPixelValue)
 
+-- OLD PGM VISUALIZER
 
 
+--local width = 512
+-- local height = 512
+-- local maxPixelValue = 255 -- Maximum pixel value for grayscale
+
+-- -- Create a function to write the PGM file
+-- local function writePGM(filename, data, width, height, maxPixelValue)
+--     local file = assert(io.open(filename, "wb"))
+--     file:write(string.format("P5\n%d %d\n%d\n", width, height, maxPixelValue))
+--     for y = 1, height do
+--         for x = 1, width do
+--             local value = math.floor(data[x][y] * maxPixelValue + 0.5)
+--             file:write(string.char(value))
+--         end
+--     end
+--     file:close()
+-- end
+
+-- -- Convert noiseMap to a grayscale PGM file
+-- writePGM("output.pgm", noiseMap, width, height, maxPixelValue
