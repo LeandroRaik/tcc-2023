@@ -17,7 +17,11 @@ local function print_map(matrix)
   
   for i=1, #matrix do
     for j=1, #matrix[i] do
-      io.write(matrix[i][j], ' ')
+      if matrix[i][j] < 10 then
+        io.write('0' .. matrix[i][j], ' ')
+      else
+        io.write(matrix[i][j], ' ')
+      end
     end
     print()
   end
@@ -28,7 +32,11 @@ end
 local function print_tile_count(data)
   print('----- SAMPLE TILE COUNT -----\n')
   for i=1, #data.tile_count do
-    print(tostring(i) .. ' => ' .. tostring(data.tile_count[i]))
+    if i < 10 then
+      print('0' .. tostring(i) .. ' => ' .. tostring(data.tile_count[i]))
+    else
+      print(tostring(i) .. ' => ' .. tostring(data.tile_count[i]))
+    end
   end
   print()
 end
@@ -291,7 +299,7 @@ local function update_neighbors_entropy(data, i, j)
   end
 
   --TILE DOWN
-  if i+1 < #data.map then
+  if i+1 <= #data.map then
     if data.map[i+1][j] == 0 then
       if #data.entropy_map[i+1][j] ~= data.n_tiles then
         data.entropy_map[i+1][j] = get_entropy_table(data.entropy_map[i+1][j], rule_down)
@@ -385,27 +393,39 @@ end
 
 ----- W.F.C ------------------------------------------
 
-local function wfc(data)
+function wfc(data)
   local done = false
   local count = 1
+  local atempts = 1
+
+  --print_rules(data)
+  --print_map(data.sample)
+  --print_entropy_map(data)
+  --print_map(data.map)
 
   while not done do
-    print('\n#### LOOP COUNT: ' .. tostring(count) .. ' ####\n')
+    --print('\n#### LOOP COUNT: ' .. tostring(count) .. ' ####\n')
     update_entropy_map(data)
-    print_entropy_map(data)
+    --print_entropy_map(data)
 
     done = collapse_map(data)
-    print_map(data.map)
+    --print_map(data.map)
     count = count + 1
-    --sleep(2)
-    io.read()
+
+    if not is_map_ok(data) and done then
+      --print('\nFAILED CREATING MAP!\n')
+      count = 1
+      done = false
+      data.map = create_new_map(data.map_len, data.map_wid)
+      start_random_map(data)
+      data.entropy_map = create_entropy_map(data) 
+      atempts = atempts + 1
+    end
   end
 
-  if not is_map_ok(data) then
-    print('\nFAILED CREATING MAP!\n')
-  else
-    print('\nSUCCESS CREATING MAP!\n')
-  end
+  print('SUCCESS AT ' .. tostring(atempts) .. ' TRY')
+
+  print_map(data.map)
 
 end
 
@@ -427,8 +447,8 @@ end
 -----  INIT  ----------------------------------------
 
 function wfc_init(m_wid, m_len, num_tiles, t_size, t_sample, s_map, debug)
-  --math.randomseed(os.time())
-  math.randomseed(420)
+  math.randomseed(os.time())
+  --math.randomseed(420)
 
   local data =
   {
@@ -534,5 +554,4 @@ function full_wfc_loop(wid, len, num_tiles, t_size)
 end
 
 
-
-full_wfc_loop(20, 20, 5, 16)
+--full_wfc_loop(20, 20, 5, 16)
