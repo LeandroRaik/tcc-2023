@@ -70,17 +70,18 @@ end
 local width = 512
 local height = 512
 local octaves = 4
+local frequency = 2
+local threshold = 0.0
 local noiseMap = {}
 
 for x = 1, width do
     noiseMap[x] = {}
     for y = 1, height do
-        local xin = x / width * 4 -- Increase the frequency to create more variation
-        local yin = y / height * 4
+        local xin = x / width * frequency -- Increase the frequency to create more variation
+        local yin = y / height * frequency
         local continentNoise = noise(xin, yin)
         
         -- Adjust threshold values to control landmass generation
-        local threshold = -1
         if continentNoise > threshold then
             noiseMap[x][y] = continentNoise -- Land
         else
