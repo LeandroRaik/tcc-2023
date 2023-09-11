@@ -3,16 +3,16 @@
 dofile('wfc/wfc.lua')
 
 -- Define the dimensions of the tileset
-local tileWidth = 32
-local tileHeight = 32
-local tilesetColumns = 6
-local tilesetRows = 4
+local tile_width = 32
+local tile_height = 32
+local tile_set_columns = 6
+local tile_set_rows = 4
 
 -- Define the scaling factor
 local scale = 1
 
 -- Load the tileset image
-local tilesetImage
+local tile_set_image
 
 -- Create a Quad for each tile in the tileset
 local quads = {}
@@ -39,41 +39,61 @@ local data = wfc_init(10, 10, 24, 32, tile_map_sample, nil, true)
 wfc(data)
 
 --Used to draw the actual map
-local customMap = data.map 
+local custom_map = data.map 
+
+local function create_new_map(data)
+  print('Creating new map..')
+  data = wfc_init(10, 10, 24, 32, tile_map_sample, nil, true)
+  wfc(data)
+  custom_map = data.map
+end
+
 
 function love.load()
-    -- Load the tileset image
-    tilesetImage = love.graphics.newImage("sprites/tileset.png")
+  -- Load the tileset image
+  tile_set_image = love.graphics.newImage("sprites/tileset.png")
 
-    -- Initialize quads
-    for y = 0, tilesetRows - 1 do
-        for x = 0, tilesetColumns - 1 do
-            local quad = love.graphics.newQuad(
-                x * tileWidth, y * tileHeight,
-                tileWidth, tileHeight,
-                tilesetImage:getWidth(), tilesetImage:getHeight()
-            )
-            table.insert(quads, quad)
-        end
+  -- Initialize quads
+  for y = 0, tile_set_rows - 1 do
+    for x = 0, tile_set_columns - 1 do
+      local quad = love.graphics.newQuad(
+        x * tile_width, y * tile_height,
+        tile_width, tile_height,
+        tile_set_image:getWidth(), tile_set_image:getHeight()
+      )
+      table.insert(quads, quad)
     end
+  end
 
-    -- Set the screen size to match the scaled tilemap size
-    love.window.setMode(#customMap[1] * tileWidth * scale, #customMap * tileHeight * scale)
+  -- Set the screen size to match the scaled tilemap size
+  love.window.setMode(#custom_map[1] * tile_width * scale, #custom_map * tile_height * scale)
 end
+
 
 function love.update(dt)
-    -- Your update logic goes here
+  --main loop logic
 end
 
-function love.draw()
-    love.graphics.scale(scale) -- Scale the drawing
 
-    for y = 1, #customMap do
-        for x = 1, #customMap[1] do
-            local tileIndex = customMap[y][x]
-            local quad = quads[tileIndex]
-            love.graphics.draw(tilesetImage, quad, (x - 1) * tileWidth, (y - 1) * tileHeight)
-        end
+function love.keypressed(key)
+  if key == "space" then
+    create_new_map(data)
+  elseif key == "escape" then
+    print("SEE YA")
+    os.exit()
+  end
+end
+
+
+function love.draw()
+  love.graphics.scale(scale) -- Scale the drawing
+
+  for y = 1, #custom_map do
+    for x = 1, #custom_map[1] do
+      local tile_index = custom_map[y][x]
+      local quad = quads[tile_index]
+      love.graphics.draw(tile_set_image, quad, (x - 1) * tile_width, (y - 1) * tile_height)
     end
+  end
 end
 
