@@ -7,6 +7,8 @@ local tile_width = 32
 local tile_height = 32
 local tile_set_columns = 6
 local tile_set_rows = 4
+local map_wid = 64 
+local map_len = 64
 
 -- Define the scaling factor
 local scale = 1
@@ -34,7 +36,7 @@ local tile_map_sample = {
 
 --wfc_init(m_wid, m_len, num_tiles, t_size, t_sample, s_map, debug)
 
-local data = wfc_init(10, 10, 24, 32, tile_map_sample, nil, true)
+local data = wfc_init(map_len, map_wid, 24, 32, tile_map_sample, nil, true)
 
 wfc(data)
 
@@ -43,7 +45,7 @@ local custom_map = data.map
 
 local function create_new_map(data)
   print('Creating new map..')
-  data = wfc_init(10, 10, 24, 32, tile_map_sample, nil, true)
+  data = wfc_init(map_len, map_wid, 24, 32, tile_map_sample, nil, true)
   wfc(data)
   custom_map = data.map
 end

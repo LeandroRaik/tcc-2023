@@ -1,7 +1,136 @@
 ---##  Wave Function Collapse  ##---
 
+--[[
 
-local fail_count = 0
+-Use the function wfc_init to create data structure
+-Use the function wfc_step to run the next iteration of wfc
+
+
+--]]
+
+local sleep_time = 0.0
+local RED = "\27[31m"
+local GREEN = "\27[32m"
+local YELLOW = "\27[33m"
+local RESET_COLOR = "\27[0m"
+local problem_tile = {}
+
+
+----- PRINTING ------------------------------------
+
+local function print_map(matrix, data)
+  local pad = ''
+  print('\n--------  MAP  --------\n')
+  for i=1, #matrix do
+    for j=1, #matrix[i] do
+      if matrix[i][j] < 10 then
+        pad = '0'
+      else
+        pad = ''
+      end
+      
+      if data.map_track[#data.map_track]['i'] == i and data.map_track[#data.map_track]['j'] == j then
+        io.write(YELLOW .. pad .. matrix[i][j] .. RESET_COLOR, ' ')
+      else
+        io.write(pad .. matrix[i][j], ' ')
+      end
+
+    end
+    print()
+  end
+  print()
+end
+
+
+local function print_tile_count(data)
+  print('----- SAMPLE TILE COUNT -----\n')
+  for i=1, #data.tile_count do
+    if i < 10 then
+      print('0' .. tostring(i) .. ' => ' .. tostring(data.tile_count[i]))
+    else
+      print(tostring(i) .. ' => ' .. tostring(data.tile_count[i]))
+    end
+  end
+  print()
+end
+
+
+local function print_rules(data)
+  print('RULES:')
+  for i=1, data.n_tiles do
+    print('\n----- TILE ' .. tostring(i) .. ' ------\n')
+    for k, v in pairs(data.rule_set[i]) do
+      io.write(string.upper(k) .. ': ')
+      for kk, vv in pairs(data.rule_set[i][k]) do
+        io.write(vv, ' ')
+      end
+      print()
+    end
+  end
+  print()
+end
+
+
+local function print_entropy_values(data)
+  for k, v in pairs(data.entropy_map) do
+    for kk, vv in pairs(data.entropy_map[k]) do
+      for l=1, #vv do
+        print(vv[l])
+      end
+    end
+    print()
+  end
+end
+
+
+
+local function print_entropy_map_old(data)
+  local pad = '' 
+
+  print('----- ENTROPY MAP -----\n')
+  for k, v in pairs(data.entropy_map) do
+    for kk, vv in pairs(data.entropy_map[k]) do
+      if #data.entropy_map[k][kk] < 10 then
+        pad = '0'
+      else
+        pad = ''
+      end
+      io.write(pad .. tostring(#data.entropy_map[k][kk]), ' ')
+    end
+    print()
+  end
+end
+
+local function print_entropy_map(data)
+  local pad = ''
+  local p_i = 0
+  local p_j = 0
+
+  if #problem_tile > 0 then
+    p_i = problem_tile[1]
+    p_j = problem_tile[2]
+  end
+
+  print('----- ENTROPY MAP -----\n')
+  for i=1, #data.entropy_map do
+    for j=1, #data.entropy_map[i] do
+      if #data.entropy_map[i][j] < 10 then
+        pad = '0'
+      else
+        pad = ''
+      end
+
+      if data.map_track[#data.map_track]['i'] == i and data.map_track[#data.map_track]['j'] == j then
+        io.write(YELLOW .. pad .. #data.entropy_map[i][j] .. RESET_COLOR, ' ')
+      elseif i == p_i and j == p_j then
+        io.write(RED .. pad .. #data.entropy_map[i][j] .. RESET_COLOR, ' ')
+      else
+        io.write(pad .. #data.entropy_map[i][j], ' ')
+      end
+    end
+    print()
+  end
+end
 
 -----  SUPPORT FUNCTIONS  -------------------------
 
@@ -16,6 +145,7 @@ local function sleep(seconds)
 end
 
 
+
 local function table_contains(table, val)
   local found = false
   for i=1, #table do
@@ -25,6 +155,25 @@ local function table_contains(table, val)
     end
   end 
   return found
+end
+
+
+local function get_sample(mode)
+ local sample = {
+    {1,2,2,1},
+    {3,2,3,3},
+    {1,4,2,5},
+    {5,2,2,1},
+  }
+
+  if mode == 'sample' then
+    return sample
+  elseif mode == 'load' then
+    print('LOADING..')
+    os.exit()
+  end
+
+  return nil
 end
 
 
@@ -90,10 +239,12 @@ local function is_map_ok(data)
   end
 
   return result
+
 end
 
 
-local function reset_map_info(data) end
+local function reset_map_info(data)
+end
 
 
 local function check_flaws(data)
@@ -103,13 +254,13 @@ local function check_flaws(data)
     for j=1, #data.map[i] do
       if data.map[i][j] == 0 and #data.entropy_map[i][j] == 0 then
         flaw = true
-        data.problem_tile = {i, j}
+        problem_tile = {i, j}
         break
       end
     end
   end
 
-  if not flaw then data.problem_tile = {} end
+  if not flaw then problem_tile = {} end
 
   return flaw
         
@@ -176,6 +327,13 @@ local function get_rules(data)
     end
   end
   
+  --sort numeric
+  for i=1, data.n_tiles do
+    table.sort(data.rule_set[i]['up'])
+    table.sort(data.rule_set[i]['down'])
+    table.sort(data.rule_set[i]['left'])
+    table.sort(data.rule_set[i]['right'])
+  end
 end
 
 -----  ENTROPY  ------------------------------------
@@ -269,44 +427,78 @@ end
 ----- BACKTRACKING ----------------------------------
 
 local function backtrack(data)
-  data.backtrack_count = data.backtrack_count + 1
   local track = data.map_track[#data.map_track]
-  local ok = false 
+  print('## BACKTRACK ##')
+  print('MAP TRACK:', #data.map_track)
 
-  if #data.map_track > 0 then
-    --Removes last attempt from old rules
-    for i=1, #data.map_track[#data.map_track]['last_rules'] do
-      if data.map_track[#data.map_track]['last_rules'][i] == track['last_tile'] then
-        table.remove(data.map_track[#data.map_track]['last_rules'], i)
-        break
-      end
-    end
+  if #data.map_track == 0 then
+    -- FAILED! RECREATE THE MAP AGAIN (FAILSAFE)
+    print('ERROR: NO TRACK LEFT!')
+    os.exit()
+  end
+  
+  print('LAST TILE: ' .. tostring(track['last_tile']))
+  print('I: ' .. tostring(track['i']))
+  print('J: ' .. tostring(track['j']))
 
-    if #data.map_track[#data.map_track]['last_rules'] > 0 then
-      local new_tile = data.map_track[#data.map_track]['last_rules'][math.random(1, #data.map_track[#data.map_track]['last_rules'])]
-      local last_i = data.map_track[#data.map_track]['i']
-      local last_j = data.map_track[#data.map_track]['j']
-
-      --collapse manualy the contradiction tile
-      data.map[last_i][last_j] = new_tile
-      data.entropy_map[last_i][last_j] = {} 
-      data.map_track[#data.map_track]['last_tile'] = new_tile
-      data.map_track['last_tile'] = new_tile
-      data.entropy_map = create_entropy_map(data)
-      update_entropy_map(data)
-      ok = true
-    else
-      --No rules left, try the tile before.
-      table.remove(data.map_track)
-      ok = backtrack(data)
-    end
-  else -- TRACK TABLE IS EMPTY
-    ok = false
+  print('RULES BEFORE:')
+  for k,v in pairs(data.map_track[#data.map_track].last_rules) do
+    print(k, v)
   end
 
-  return ok
+  print('\nBEFORE BRACKTRACK:')
+  print_map(data.map, data)
+  print_entropy_map(data)
+
+  --Removes last attempt from old rules
+  for i=1, #data.map_track[#data.map_track]['last_rules'] do
+    if data.map_track[#data.map_track]['last_rules'][i] == track['last_tile'] then
+      table.remove(data.map_track[#data.map_track]['last_rules'], i)
+      break
+    end
+  end
+
+
+  print('\nRULES AFTER:')
+  for k,v in pairs(data.map_track[#data.map_track].last_rules) do
+    print(k, v)
+  end
+
+  print('PROBLEM TILE:\nI: ' .. tostring(problem_tile[1]) .. ' x J:' .. tostring(problem_tile[2]))
+
+  --print(RED .. '\nBACKTRACK! PRESS ENTER TO CONTINUE..' .. RESET_COLOR)
+  --io.read()
+
+  
+  if #data.map_track[#data.map_track]['last_rules'] > 0 then
+    local new_tile = data.map_track[#data.map_track]['last_rules'][math.random(1, #data.map_track[#data.map_track]['last_rules'])]
+    local last_i = data.map_track[#data.map_track]['i']
+    local last_j = data.map_track[#data.map_track]['j']
+
+    print('NEW TILE: ' .. tostring(new_tile))
+    print('LAST I: ' .. tostring(last_i))
+    print('LAST J: ' .. tostring(last_j))
+
+    --local new_tile = track.last_rules[math.random(1, #track.last_rules)]
+
+    --data.entropy_map = create_entropy_map(data)
+
+    data.map[last_i][last_j] = new_tile
+    data.entropy_map[last_i][last_j] = {} 
+    data.map_track[#data.map_track]['last_tile'] = new_tile
+    data.map_track['last_tile'] = new_tile
+    data.entropy_map = create_entropy_map(data)
+    update_entropy_map(data)
+  else
+    --No rules left, try the tile before.
+    print('NO RULES LEFT! BACKTRACKING..')
+    table.remove(data.map_track)
+    backtrack(data)
+  end
+
 
 end
+
 
 ----- COLLAPSE --------------------------------------
 
@@ -354,13 +546,13 @@ local function collapse_map(data)
   local min_ent = data.n_tiles + 1
   local best_tiles = {}
   local b_tile = {}
-  local ok = true
   
   -- Check if last iteration dont caused a contradiction
   if check_flaws(data) then
-    ok = backtrack(data)
-  else
-    --collapse the map
+    backtrack(data)
+  --end
+  else--
+
     for i=1, #data.map do
       for j=1, #data.map[i] do
         if #data.entropy_map[i][j] ~= 0 then --not collapsed
@@ -377,21 +569,35 @@ local function collapse_map(data)
       end
     end
 
+  end--
+
+
+  print('\nAFTER COLLAPSE:\n')
+  print_map(data.map, data)
+  print_entropy_map(data)
+
+  print('\nzeros:  ' .. tostring(get_map_zeros(data)))
+
+  if is_map_ok(data) then
+    print('map ok: ' .. GREEN .. tostring(is_map_ok(data)) .. RESET_COLOR)
+  else
+    print('map ok: ' .. RED .. tostring(is_map_ok(data)) .. RESET_COLOR)
   end
+
+  if not check_flaws(data) then
+    print('flaws:  ' .. GREEN .. tostring(check_flaws(data)) .. RESET_COLOR)
+  else
+    print('flaws:  ' .. RED .. tostring(check_flaws(data)) .. RESET_COLOR)
+  end
+
+  if sleep_time > 0 then sleep(sleep_time) end
 
   --Return if the generation is done.
   if #best_tiles > 0 then
     choose_new_tile(data, best_tiles)
-    if not ok then
-      fail_count = fail_count + 1
-      return true
-    else
-      return false
-    end
+    return false 
   else
-    if not ok then fail_count = fail_count + 1 end
-
-    if is_map_ok(data) or not ok then
+    if is_map_ok(data) then
       return true 
     else
       return false 
@@ -401,22 +607,66 @@ local function collapse_map(data)
 end
 
 
+
+
 ----- W.F.C ------------------------------------------
 
 function wfc(data)
-  local generation_done = false
+  local done = false
+  local count = 1
+  local atempts = 1
 
-  while not generation_done do
+
+  local n_zeros = get_map_zeros(data) 
+
+  --print_rules(data)
+  --print_map(data.sample)
+  --print_entropy_map(data)
+  --print_map(data.map)
+
+  while not done do
+    print('\n#### LOOP COUNT: ' .. tostring(count) .. ' ####\n')
+    n_zeros = get_map_zeros(data)
+
     update_entropy_map(data)
-    generation_done = collapse_map(data)
+    --print_entropy_map(data)
+
+    done = collapse_map(data)
+    --print_map(data.map)
+    count = count + 1
+
+    if not is_map_ok(data) and done then
+      print(RED .. 'FAILED!' .. RESET_COLOR)
+    end
   end
+
+  if is_map_ok(data) then print('\n' .. GREEN .. 'SUCCESS!' .. RESET_COLOR) end
+
+  print_map(data.map, data)
+
+  print("\nThat's all folks!\n")
+
+end
+
+
+function do_wfc_step(data, step, debug)
+  print('STEP: ' .. tostring(step))
+  --Create new entropy map
+  update_entropy_map(data)
+
+  if debug then print_entropy_map(data) end
+
+  collapse_map(data)
+
+  if debug then print_map(data.map, data) end
+
 
 end
 
 
 -----  INIT  ----------------------------------------
 
-function wfc_init(m_wid, m_len, num_tiles, t_size, t_sample, s_map)
+function wfc_init(m_wid, m_len, num_tiles, t_size, t_sample, s_map, debug)
   math.randomseed(os.time())
   --math.randomseed(666)
 
@@ -433,8 +683,6 @@ function wfc_init(m_wid, m_len, num_tiles, t_size, t_sample, s_map)
     rule_set = {},
     tile_count = {},
     map_track = {},
-    problem_tile = {},
-    backtrack_count = 0,
   }
 
   --Used to count how many times a tile appear on a sample
@@ -460,6 +708,14 @@ function wfc_init(m_wid, m_len, num_tiles, t_size, t_sample, s_map)
   data.entropy_map = create_entropy_map(data)
   update_entropy_map(data)
 
+  if debug then
+    print_map(data.sample, data)
+    print_rules(data)
+    print_tile_count(data)
+    print_entropy_map(data)
+    print_map(data.map, data)
+  end
+
   return data
 
 end
@@ -478,50 +734,10 @@ local function test()
     {1,1,1,1,1,1,1,1,1,1,1,1,1,4,11,4,12,4,12,16,12,16},
   }
 
-  local data = nil
-  local start_time = 0
-  local end_time = 0
-  local total_time = 0
-  local elapsed_time = 0
-
-  local map_len = 128 
-  local map_wid = 128
-  local n_tiles = 24
-  local tile_size = 32
-  local map_size = map_len * map_wid
-
-  local backtrack_count = 0
-
-  local iterations = 10
-
-  print('###  WFC  ###')
-  print('\nMAP LEN: ' .. tostring(map_len))
-  print('MAP WID: ' .. tostring(map_wid))
-  print('TILESET SIZE: ' .. tostring(n_tiles))
-  print('NUMBER OF TILES: ' .. tostring(map_size) .. '\n')
-  
-  for i=1, iterations do
-    print('ITERATION: ' .. tostring(i))
-    elapsed_time = 0
-    start_time = os.clock()
-    data = wfc_init(map_len, map_wid, n_tiles, tile_size, tile_map_sample, nil)
-    wfc(data)
-    end_time = os.clock()
-    elapsed_time = end_time - start_time
-    total_time = total_time + elapsed_time
-    backtrack_count = backtrack_count + data.backtrack_count
-    print('NUMBER OF TILES: ' .. tostring(map_size))
-    print('BACKTRACK COUNT: ' .. tostring(data.backtrack_count))
-    print('FAIL COUNT: ' .. tostring(fail_count))
-    print('ELAPSED TIME: ' .. tostring(elapsed_time) .. 's\n')
-  end
-
-  print('\n###  REPORT ###')
-  print('\nTOTAL TIME: ' .. tostring(total_time) .. 's')
-  print('AVARAGE TIME: ' .. tostring(total_time / iterations) .. 's')
-  print('AVARAGE BACKTRACKS: ' .. tostring(backtrack_count / iterations))
-  print('FAIL COUNT: ' .. tostring(fail_count) .. '\n')
-
+  local data = wfc_init(64, 64, 24, 32, tile_map_sample, nil, true)
+  wfc(data)
 end
 
+
 test()
+
