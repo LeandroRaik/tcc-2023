@@ -1,0 +1,13 @@
+ea4bc82a6ad023ab7ee23ee620429895
+::res://::1697576896
+icon.svg::CompressedTexture2D::6042841663766282599::1697570925::1697570935::1::::<><>::
+::res://addons/::1697574451
+::res://addons/map_generator/::1697576838
+baconeggs.png::CompressedTexture2D::457255676907999786::1690534126::1697574451::1::::<><>::
+plugin.cfg::TextFile::-1::1697576838::0::1::::<><>::
+plugin.gd::GDScript::-1::1697576723::0::1::::<>EditorPlugin<>::
+::res://addons/map_generator/scenes/::1697576064
+my_dock.tscn::PackedScene::3747989665732777748::1697576064::0::1::::<><>::res://addons/map_generator/scripts/create_button.gd
+::res://addons/map_generator/scripts/::1697576886
+create_button.gd::GDScript::-1::1697576886::0::1::::<>Button<>::
+::res://scripts/::1697576801
