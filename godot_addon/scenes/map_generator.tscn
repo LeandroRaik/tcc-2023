@@ -1,0 +1,131 @@
+[gd_scene load_steps=4 format=3 uid="uid://cene7mg1yy1dd"]
+
+[ext_resource type="Script" path="res://scripts/map_generator.gd" id="1_6vvh0"]
+[ext_resource type="TileSet" uid="uid://b0opcqanon5ba" path="res://scripts/tile_maps/new_tile_set.tres" id="2_n130p"]
+[ext_resource type="Script" path="res://scripts/TileMap.gd" id="3_4vtrn"]
+
+[node name="map_generator" type="Node2D"]
+script = ExtResource("1_6vvh0")
+
+[node name="input_menu" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 52.0
+offset_top = 36.0
+offset_right = 92.0
+offset_bottom = 76.0
+
+[node name="VBox" type="VBoxContainer" parent="input_menu"]
+layout_mode = 0
+offset_right = 134.0
+offset_bottom = 301.0
+
+[node name="Label" type="Label" parent="input_menu/VBox"]
+layout_mode = 2
+text = "CONFIGURACOES"
+
+[node name="Label2" type="Label" parent="input_menu/VBox"]
+layout_mode = 2
+
+[node name="ca_box" type="CheckBox" parent="input_menu/VBox"]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="ca_label" type="Label" parent="input_menu/VBox/ca_box"]
+layout_mode = 0
+offset_left = 26.0
+offset_right = 47.0
+offset_bottom = 23.0
+text = "CA"
+
+[node name="sn_box" type="CheckBox" parent="input_menu/VBox"]
+layout_mode = 2
+
+[node name="sn_label" type="Label" parent="input_menu/VBox/sn_box"]
+layout_mode = 0
+offset_left = 25.0
+offset_right = 65.0
+offset_bottom = 23.0
+text = "SN"
+
+[node name="wfc_box" type="CheckBox" parent="input_menu/VBox"]
+layout_mode = 2
+
+[node name="wfc_label" type="Label" parent="input_menu/VBox/wfc_box"]
+layout_mode = 0
+offset_left = 25.0
+offset_right = 65.0
+offset_bottom = 23.0
+text = "WFC"
+
+[node name="pad" type="Label" parent="input_menu/VBox"]
+layout_mode = 2
+
+[node name="import_label" type="Label" parent="input_menu/VBox"]
+layout_mode = 2
+text = "IMPORT"
+horizontal_alignment = 1
+
+[node name="import_tile_path_ed" type="LineEdit" parent="input_menu/VBox"]
+layout_mode = 2
+placeholder_text = "tileset path"
+alignment = 1
+
+[node name="import_tile_map_size_ed" type="LineEdit" parent="input_menu/VBox"]
+layout_mode = 2
+placeholder_text = "tileset size"
+alignment = 1
+
+[node name="import_tile_size_ed" type="LineEdit" parent="input_menu/VBox"]
+layout_mode = 2
+placeholder_text = "tile size"
+alignment = 1
+
+[node name="pad2" type="Label" parent="input_menu/VBox"]
+layout_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="geracao_label" type="Label" parent="input_menu/VBox"]
+layout_mode = 2
+text = "GERACAO"
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="tile_map_size" type="LineEdit" parent="input_menu/VBox"]
+layout_mode = 2
+placeholder_text = "map size"
+alignment = 1
+
+[node name="pad3" type="Label" parent="input_menu/VBox"]
+layout_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="create_button" type="Button" parent="input_menu/VBox"]
+layout_mode = 2
+auto_translate = false
+localize_numeral_system = false
+text = "GERAR"
+
+[node name="exit_button" type="Button" parent="input_menu/VBox"]
+layout_mode = 2
+text = "SAIR"
+
+[node name="map_view" type="Node2D" parent="."]
+
+[node name="TileMap" type="TileMap" parent="map_view"]
+position = Vector2(384, 62)
+tile_set = ExtResource("2_n130p")
+format = 2
+script = ExtResource("3_4vtrn")
+
+[connection signal="toggled" from="input_menu/VBox/ca_box" to="." method="_on_ca_box_toggled"]
+[connection signal="toggled" from="input_menu/VBox/sn_box" to="." method="_on_sn_box_toggled"]
+[connection signal="toggled" from="input_menu/VBox/wfc_box" to="." method="_on_wfc_box_toggled"]
+[connection signal="focus_exited" from="input_menu/VBox/import_tile_path_ed" to="." method="_on_import_tile_path_ed_focus_exited"]
+[connection signal="focus_exited" from="input_menu/VBox/import_tile_map_size_ed" to="." method="_on_import_tile_map_size_ed_focus_exited"]
+[connection signal="focus_exited" from="input_menu/VBox/import_tile_size_ed" to="." method="_on_import_tile_size_ed_focus_exited"]
+[connection signal="focus_exited" from="input_menu/VBox/tile_map_size" to="." method="_on_tile_map_size_focus_exited"]
+[connection signal="pressed" from="input_menu/VBox/create_button" to="." method="_on_create_button_pressed"]
+[connection signal="pressed" from="input_menu/VBox/exit_button" to="." method="_on_exit_button_pressed"]

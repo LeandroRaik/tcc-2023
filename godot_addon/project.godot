@@ -10,11 +10,7 @@ config_version=5
 
 [application]
 
-config/name="pg"
-run/main_scene="res://addons/map_generator/scenes/my_dock.tscn"
+config/name="Godot Projects"
+run/main_scene="res://scenes/map_generator.tscn"
 config/features=PackedStringArray("4.2", "Forward Plus")
 config/icon="res://icon.svg"
-
-[editor_plugins]
-
-enabled=PackedStringArray("res://addons/map_generator/plugin.cfg")
