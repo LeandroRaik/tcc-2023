@@ -465,8 +465,6 @@ function wfc_init(m_wid, m_len, num_tiles, t_size, t_sample, s_map)
 end
 
 
-
-
 local function test()
   local tile_map_sample = {
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
@@ -486,14 +484,72 @@ local function test()
   local total_time = 0
   local elapsed_time = 0
 
-  local map_len = 128 
-  local map_wid = 128
+  local map_len = 32 
+  local map_wid = 32
   local n_tiles = 24
   local tile_size = 32
   local map_size = map_len * map_wid
 
-  data = wfc_init(map_len, map_wid, n_tiles, tile_size, tile_map_sample, nil)
-  wfc(data)
+  local backtrack_count = 0
+
+  local iterations = 10
+
+  print('###  WFC  ###')
+  print('\nMAP LEN: ' .. tostring(map_len))
+  print('MAP WID: ' .. tostring(map_wid))
+  print('TILESET SIZE: ' .. tostring(n_tiles))
+  print('NUMBER OF TILES: ' .. tostring(map_size) .. '\n')
+  
+  for i=1, iterations do
+    print('ITERATION: ' .. tostring(i))
+    elapsed_time = 0
+    start_time = os.clock()
+    data = wfc_init(map_len, map_wid, n_tiles, tile_size, tile_map_sample, nil)
+    wfc(data)
+    end_time = os.clock()
+    elapsed_time = end_time - start_time
+    total_time = total_time + elapsed_time
+    backtrack_count = backtrack_count + data.backtrack_count
+    print('NUMBER OF TILES: ' .. tostring(map_size))
+    print('BACKTRACK COUNT: ' .. tostring(data.backtrack_count))
+    print('FAIL COUNT: ' .. tostring(fail_count))
+    print('ELAPSED TIME: ' .. tostring(elapsed_time) .. 's\n')
+  end
+
+  print('\n###  REPORT ###')
+  print('\nTOTAL TIME: ' .. tostring(total_time) .. 's')
+  print('AVARAGE TIME: ' .. tostring(total_time / iterations) .. 's')
+  print('AVARAGE BACKTRACKS: ' .. tostring(backtrack_count / iterations))
+  print('FAIL COUNT: ' .. tostring(fail_count) .. '\n')
 
 end
+
+
+function godot_wfc(sample_matrix, map_len, map_wid, n_tiles, tile_size)
+  local map_size = map_len * map_wid
+  for i in #sample_matrix do
+    print(sample_matrix[i])
+  end
+
+  --local data = wfc_init(map_len, map_wid, n_tiles, tile_size, sample_matrix, nil)
+  --wfc(data)
+  return "RETORNO DO LUA" 
+end
+
+--[[
+  local tile_map_sample = { 
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+    {1,1,1,1,2,1,3,1,4,1,10,1,16,1,22,1,3,2,3,3,3,3},
+    {1,7,8,9,1,1,1,1,1,1,1,1,1,1,1,1,2,5,2,3,5,3},
+    {1,13,14,15,1,1,1,5,1,6,1,1,1,17,18,1,2,11,2,3,11,3},
+    {1,13,14,15,1,1,1,11,1,12,1,1,1,23,24,1,2,2,2,3,3,3},
+    {1,19,20,21,1,1,1,1,1,1,1,1,1,1,1,1,5,5,5,6,6,6},
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,11,11,11,12,12,12},
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,4,5,4,6,4,6,16,6,16},
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,4,11,4,12,4,12,16,12,16},
+  }
+
+
+godot_wfc(tile_map_sample, {32, 32, 24, 32})
+--]]
 
