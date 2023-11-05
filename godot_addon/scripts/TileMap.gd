@@ -1,8 +1,8 @@
 extends TileMap
 
-var map_array = []
 
 func update_map_array(tilemap_wid, tilemap_len):
+	var map_array = []
 	for y in tilemap_len:
 		for x in tilemap_wid:
 			map_array.append(Vector2i(x, y))
@@ -10,8 +10,9 @@ func update_map_array(tilemap_wid, tilemap_len):
 	return map_array
 
 
-func update_tile_map(matrix, map_wid, map_len):
+func update_tile_map(matrix, map_wid, map_len, map_array):
 	var tile_vec = null
+	print(map_array)
 	for x in map_wid:
 		for y in map_len:
 			tile_vec = map_array[matrix[x][y] - 1]
@@ -19,8 +20,8 @@ func update_tile_map(matrix, map_wid, map_len):
 
 
 func generate_new_map(matrix, map_wid, map_len, tilemap_wid, tilemap_len):
-	update_map_array(tilemap_wid, tilemap_len)
-	update_tile_map(matrix, map_wid, map_len)
+	var map_array = update_map_array(tilemap_wid, tilemap_len)
+	update_tile_map(matrix, map_wid, map_len, map_array)
 	print("New map created!")
 
 

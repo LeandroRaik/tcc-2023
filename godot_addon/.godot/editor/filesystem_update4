@@ -1,1 +1,5 @@
+res://scripts/map_generator.gd
 res://addons/map_generator/scenes/my_dock.tscn
+res://scripts/tile_maps/new_tile_set.tres
+res://scenes/map_generator.tscn
+res://scripts/TileMap.gd

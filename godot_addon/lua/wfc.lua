@@ -516,7 +516,6 @@ local function test()
     print('ELAPSED TIME: ' .. tostring(elapsed_time) .. 's\n')
   end
 
-  print('\n###  REPORT ###')
   print('\nTOTAL TIME: ' .. tostring(total_time) .. 's')
   print('AVARAGE TIME: ' .. tostring(total_time / iterations) .. 's')
   print('AVARAGE BACKTRACKS: ' .. tostring(backtrack_count / iterations))
@@ -525,31 +524,34 @@ local function test()
 end
 
 
-function godot_wfc(sample_matrix, map_len, map_wid, n_tiles, tile_size)
-  local map_size = map_len * map_wid
-  for i in #sample_matrix do
-    print(sample_matrix[i])
+local function read_file(path)
+  local script_path = debug.getinfo(1, "S").source:sub(2)
+  local script_dir = script_path:match("(.*[/\\])")
+  local matrix = {}
+
+  local file = io.open(script_dir .. "/" .. path, "r")
+
+  for line in file:lines() do
+    if line:sub(1,1) ~= "#" then --allow comments
+      local row = {}
+      for val in line:gmatch("[^,]+") do --split by ','
+        table.insert(row, tonumber(val))
+      end
+      table.insert(matrix, row)
+    end
   end
 
-  --local data = wfc_init(map_len, map_wid, n_tiles, tile_size, sample_matrix, nil)
-  --wfc(data)
-  return "RETORNO DO LUA" 
+  file:close()
+
+  return matrix
 end
 
---[[
-  local tile_map_sample = { 
-    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
-    {1,1,1,1,2,1,3,1,4,1,10,1,16,1,22,1,3,2,3,3,3,3},
-    {1,7,8,9,1,1,1,1,1,1,1,1,1,1,1,1,2,5,2,3,5,3},
-    {1,13,14,15,1,1,1,5,1,6,1,1,1,17,18,1,2,11,2,3,11,3},
-    {1,13,14,15,1,1,1,11,1,12,1,1,1,23,24,1,2,2,2,3,3,3},
-    {1,19,20,21,1,1,1,1,1,1,1,1,1,1,1,1,5,5,5,6,6,6},
-    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,11,11,11,12,12,12},
-    {1,1,1,1,1,1,1,1,1,1,1,1,1,4,5,4,6,4,6,16,6,16},
-    {1,1,1,1,1,1,1,1,1,1,1,1,1,4,11,4,12,4,12,16,12,16},
-  }
 
-
-godot_wfc(tile_map_sample, {32, 32, 24, 32})
---]]
+function godot_wfc(file_path, map_len, map_wid, n_tiles, tile_size)
+  local map_size = map_len * map_wid
+  local sample_matrix = read_file(file_path)
+  local data = wfc_init(map_len, map_wid, n_tiles, tile_size, sample_matrix, nil)
+  wfc(data)
+  return data.map 
+end
 

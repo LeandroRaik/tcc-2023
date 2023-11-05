@@ -484,8 +484,8 @@ local function test()
   local total_time = 0
   local elapsed_time = 0
 
-  local map_len = 128 
-  local map_wid = 128
+  local map_len = 32 
+  local map_wid = 32
   local n_tiles = 24
   local tile_size = 32
   local map_size = map_len * map_wid
@@ -522,6 +522,18 @@ local function test()
   print('AVARAGE BACKTRACKS: ' .. tostring(backtrack_count / iterations))
   print('FAIL COUNT: ' .. tostring(fail_count) .. '\n')
 
+end
+
+  for i=1, #data.map do
+    for j=1, #data.map[i] do
+
+local function godot_wfc(tile_map_sample)
+  print("GODOT LUA !!")
+  for i=1, #tile_map_sample do
+    for j=1, #tile_map_sample[i] do
+      print(tile_map_sample[i][j] .. ",")
+    end
+  end
 end
 
 test()

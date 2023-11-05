@@ -13,24 +13,11 @@ var matrix = null
 
 var lua: LuaAPI = LuaAPI.new()
 
-
-var tile_map_sample: Array = [
-	[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-	[1,1,1,1,2,1,3,1,4,1,10,1,16,1,22,1,3,2,3,3,3,3],
-	[1,7,8,9,1,1,1,1,1,1,1,1,1,1,1,1,2,5,2,3,5,3],
-	[1,13,14,15,1,1,1,5,1,6,1,1,1,17,18,1,2,11,2,3,11,3],
-	[1,13,14,15,1,1,1,11,1,12,1,1,1,23,24,1,2,2,2,3,3,3],
-	[1,19,20,21,1,1,1,1,1,1,1,1,1,1,1,1,5,5,5,6,6,6],
-	[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,11,11,11,12,12,12],
-	[1,1,1,1,1,1,1,1,1,1,1,1,1,4,5,4,6,4,6,16,6,16],
-	[1,1,1,1,1,1,1,1,1,1,1,1,1,4,11,4,12,4,12,16,12,16],
-]
-
 @onready var c_tile_map = $"map_view/TileMap"
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	lua.bind_libraries(["base", "table", "string"])
+	lua.bind_libraries(["base", "table", "string", "io", "os", "debug", "math"])
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -73,24 +60,30 @@ func _on_wfc_box_toggled(toggled_on):
 		wfc_checked = false
 
 
+func handle_wfc():
+	print("CREATING MAP..")
+	lua.do_file("res://lua/wfc.lua")
+	var map_len = 16
+	var map_wid = 16
+	var n_tiles = 24
+	var tile_size = 32
+	var tilemap_wid = 6
+	var tilemap_len = 4
+	var file_path = "sample_map.txt"
+	var wfc = lua.call_function("godot_wfc", [file_path, map_len, map_wid, n_tiles, tile_size])
+	
+	if wfc is LuaError:
+		print(wfc.message)
+	else:
+		print(wfc)
+		c_tile_map.generate_new_map(wfc, map_wid, map_len, tilemap_wid, tilemap_len)
+		#c_tile_map.generate_new_map(wfc, 16, 16, 2, 2)
+		#c_tile_map.generate_new_map()
+
 # BUTTONS
 func _on_create_button_pressed():
 	if wfc_checked:
-		print("CREATING MAP..")
-		lua.do_file("res://lua/wfc.lua")
-		var map_len = 32
-		var map_wid = 32
-		var n_tiles = 24
-		var tile_size = 32
-		
-		var volta_lua = lua.call_function("godot_wfc", [tile_map_sample, map_len, map_wid, n_tiles, tile_size])
-		print(volta_lua)
-		#for i in volta_lua.size():
-			#for j in volta_lua[i].size():
-				#print(volta_lua[i][j])
-			#print()
-		print("TERMINOU")
-		#c_tile_map.update_generate_new_map(matrix, map_wid, map_len, tilemap_wid, tilemap_len)
+		handle_wfc()
 	else:
 		print("OPCAO INVALIDA!!!!")
 
